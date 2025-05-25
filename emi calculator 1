@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Calculate your EMI (Equated Monthly Installment) for home loans, car loans, personal loans with our easy-to-use EMI Calculator Dashboard.">
+    <meta name="keywords" content="EMI Calculator, Loan Calculator, EMI, Loan EMI, Home Loan EMI, Car Loan EMI, Personal Loan EMI">
+    <meta name="author" content="EMI Calculator Tool">
+    
+    <title>EMI Calculator Dashboard - Calculate Loan Payments</title>
+    
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* Custom CSS */
+        :root {
+            --primary-color: #4F46E5;
+            --secondary-color: #6366F1;
+            --accent-color: #818CF8;
+            --text-color: #1F2937;
+            --light-gray: #F3F4F6;
+            --white: #FFFFFF;
+            --border-radius: 10px;
+            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-color);
+            background-color: #F9FAFB;
+            line-height: 1.6;
+        }
+        
+        .sidebar {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: var(--white);
+            min-height: 100vh;
+        }
+        
+        .gradient-button {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .gradient-button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        .card {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+        
+        .input-field {
+            border-radius: var(--border-radius);
+            border: 1px solid #D1D5DB;
+            padding: 0.75rem 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .input-field:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:focus + .toggle-slider {
+            box-shadow: 0 0 1px var(--primary-color);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid var(--light-gray);
+            border-top-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+            display: none;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .result-box {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                z-index: 40;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .mobile-toggle {
+                display: block;
+            }
+        }
+        
+        /* Tablet & Above */
+        @media (min-width: 768px) {
+            .mobile-toggle {
+                display: none;
+            }
+        }
+        
+        /* Keeping the sidebar visible in larger screens */
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: 250px;
+            }
+        }
+
+        /* Dark mode styling */
+        .dark-mode {
+            background-color: #1F2937;
+            color: #F9FAFB;
+        }
+        
+        .dark-mode .card {
+            background-color: #374151;
+            color: #F9FAFB;
+        }
+        
+        .dark-mode .input-field {
+            background-color: #4B5563;
+            color: #F9FAFB;
+            border-color: #6B7280;
+        }
+        
+        .dark-mode .text-gray-600,
+        .dark-mode .text-gray-700,
+        .dark-mode .text-gray-500 {
+            color: #D1D5DB;
+        }
+        
+        .dark-mode th {
+            background-color: #4B5563;
+            color: #F9FAFB;
+        }
+        
+        .dark-mode .bg-gray-50 {
+            background-color: #4B5563;
+        }
+        
+        .dark-mode .bg-white {
+            background-color: #374151;
+        }
+        
+        .dark-mode table {
+            color: #F9FAFB;
+        }
+        
+        /* Optimizing for PDF export */
+         {
+            body {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                background-color: white;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+            
+            .card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+                margin-bottom: 20px;
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+            
+            .mobile-toggle {
+                display: none;
+            }
+            
+            @page {
+                size: auto;
+                margin: 10mm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="flex flex-col md:flex-row">
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 px-5 py-10 fixed left-0 top-0 h-full md:block hidden">
+            <div class="flex justify-center mb-8">
+                <h1 class="text-2xl font-bold text-white">EMI Calculator</h1>
+            </div>
+            <nav>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="#" class="flex items-center px-4 py-3 text-white hover:bg-white hover:bg-opacity-10 rounded-lg transition-all">
+                            <i class="fas fa-calculator mr-3"></i>
+                            <span>EMI Calculator</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center px-4 py-3 text-white hover:bg-white hover:bg-opacity-10 rounded-lg transition-all">
+                            <i class="fas fa-home mr-3"></i>
+                            <span>Home Loan</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center px-4 py-3 text-white hover:bg-white hover:bg-opacity-10 rounded-lg transition-all">
+                            <i class="fas fa-car mr-3"></i>
+                            <span>Car Loan</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center px-4 py-3 text-white hover:bg-white hover:bg-opacity-10 rounded-lg transition-all">
+                            <i class="fas fa-user mr-3"></i>
+                            <span>Personal Loan</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center px-4 py-3 text-white hover:bg-white hover:bg-opacity-10 rounded-lg transition-all">
+                            <i class="fas fa-chart-line mr-3"></i>
+                            <span>Loan Comparison</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center px-4 py-3 text-white hover:bg-white hover:bg-opacity-10 rounded-lg transition-all">
+                            <i class="fas fa-question-circle mr-3"></i>
+                            <span>EMI FAQ</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <!-- Dark Mode Toggle -->
+            <div class="mt-10 pt-6 border-t border-indigo-400">
+                <button id="darkModeToggle" class="w-full flex items-center px-4 py-3 text-white hover:bg-white hover:bg-opacity-10 rounded-lg transition-all">
+                    <i class="fas fa-moon mr-3"></i>
+                    <span>Dark Mode</span>
+                    <label class="toggle-switch ml-auto">
+                        <input type="checkbox" id="darkModeCheckbox">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Mobile Navigation Toggle -->
+        <button class="mobile-toggle fixed top-4 right-4 z-50 p-2 bg-indigo-600 text-white rounded-lg md:hidden">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Main Content -->
+        <main class="w-full md:pl-64 p-5">
+            <div class="max-w-7xl mx-auto">
+                <!-- Header -->
+                <header class="mb-8 flex justify-between items-center">
+                    <div>
+                        <h1 class="text-3xl font-bold">EMI Calculator Dashboard</h1>
+                        <p class="text-gray-600">Calculate your Equated Monthly Installment (EMI) for any loan amount</p>
+                    </div>
+                    
+                    <!-- Currency Dropdown -->
+                    <div class="flex items-center space-x-3">
+                        <label for="currencySelect" class="text-sm font-medium text-gray-700">Currency:</label>
+                        <select id="currencySelect" class="input-field text-sm py-1">
+                            <option value="₹">INR (₹)</option>
+                            <option value="$">USD ($)</option>
+                            <option value="€">EUR (€)</option>
+                            <option value="£">GBP (£)</option>
+                        </select>
+                        
+                        <!-- Loan Type Dropdown -->
+                        <label for="loanTypeSelect" class="text-sm font-medium text-gray-700 ml-4">Loan Type:</label>
+                        <select id="loanTypeSelect" class="input-field text-sm py-1">
+                            <option value="home">Home Loan</option>
+                            <option value="car">Car Loan</option>
+                            <option value="personal">Personal Loan</option>
+                            <option value="education">Education Loan</option>
+                        </select>
+                    </div>
+                </header>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Calculator Form -->
+                    <div class="lg:col-span-1">
+                        <div class="card p-6">
+                            <h2 class="text-xl font-semibold mb-4">Enter Loan Details</h2>
+                            <form id="emiForm" class="space-y-4">
+                                <div>
+                                    <label for="loanAmount" class="block text-sm font-medium text-gray-700 mb-1">Loan Amount (<span id="currencySymbol">₹</span>)</label>
+                                    <input type="number" id="loanAmount" name="loanAmount" class="input-field w-full" placeholder="E.g. 1000000" value="1000000">
+                                </div>
+                                
+                                <div>
+                                    <label for="interestRate" class="block text-sm font-medium text-gray-700 mb-1">Annual Interest Rate (%)</label>
+                                    <input type="number" id="interestRate" name="interestRate" class="input-field w-full" placeholder="E.g. 8.5" value="8.5" step="0.01">
+                                </div>
+                                
+                                <div>
+                                    <label for="loanTenure" class="block text-sm font-medium text-gray-700 mb-1">Loan Tenure</label>
+                                    <div class="flex items-center space-x-3">
+                                        <input type="number" id="loanTenure" name="loanTenure" class="input-field w-full" placeholder="E.g. 20" value="20">
+                                        <div class="flex items-center">
+                                            <span id="tenureYears" class="mr-2 font-medium text-indigo-600">Years</span>
+                                            <label class="toggle-switch">
+                                                <input type="checkbox" id="tenureToggle">
+                                                <span class="toggle-slider"></span>
+                                            </label>
+                                            <span id="tenureMonths" class="ml-2 text-gray-500">Months</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="gradient-button w-full py-3 px-4 rounded-lg text-white font-medium">
+                                    Calculate EMI
+                                </button>
+                            </form>
+                            
+                            <!-- Loading Spinner -->
+                            <div id="loadingSpinner" class="spinner mt-4"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Results Section -->
+                    <div class="lg:col-span-2">
+                        <div class="card p-6 mb-6">
+                            <h2 class="text-xl font-semibold mb-6">Calculation Results</h2>
+                            
+                            <div id="resultsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="result-box">
+                                    <div class="text-sm text-gray-500">Monthly EMI</div>
+                                    <div id="monthlyEmi" class="text-2xl font-semibold text-indigo-600">₹8,364</div>
+                                </div>
+                                
+                                <div class="result-box">
+                                    <div class="text-sm text-gray-500">Total Interest Payable</div>
+                                    <div id="totalInterest" class="text-2xl font-semibold text-indigo-600">₹1,007,454</div>
+                                </div>
+                                
+                                <div class="result-box">
+                                    <div class="text-sm text-gray-500">Total Payment (Principal + Interest)</div>
+                                    <div id="totalPayment" class="text-2xl font-semibold text-indigo-600">₹2,007,454</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Added text explanation -->
+                            <div class="mt-6 text-sm text-gray-600">
+                                <p>These calculations are based on fixed interest rate for the entire tenure with monthly reducing balance.</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Chart Section -->
+                        <div class="card p-6">
+                            <h2 class="text-xl font-semibold mb-6">Payment Breakdown</h2>
+                            
+                            <div class="h-80">
+                                <canvas id="emiChart"></canvas>
+                            </div>
+                            
+                            <div class="flex justify-center mt-6 space-x-8">
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 rounded bg-indigo-600 mr-2"></div>
+                                    <span>Principal Amount</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 rounded bg-indigo-300 mr-2"></div>
+                                    <span>Total Interest</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Payment Schedule Section -->
+                <div class="mt-8">
+                    <div class="card p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-xl font-semibold">Payment Schedule Overview</h2>
+                            <button id="downloadPdfBtn" class="gradient-button py-2 px-4 rounded-lg text-white font-medium">
+                                <i class="fas fa-download mr-2"></i> Download Schedule
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Principal Paid</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest Paid</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="paymentScheduleBody" class="bg-white divide-y divide-gray-200">
+                                    <!-- Payment schedule data will be filled by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Additional Information Section -->
+                <div class="mt-8">
+                    <div class="card p-6">
+                        <h2 class="text-xl font-semibold mb-4">EMI Calculation Explained</h2>
+                        <div class="text-gray-700">
+                            <p class="mb-3">An Equated Monthly Installment (EMI) is a fixed payment amount made by a borrower to a lender at a specified date each calendar month. EMIs are used to pay off both interest and principal each month so that over a specified number of years, the loan is fully paid off along with interest.</p>
+                            
+                            <p class="mb-3">The EMI is calculated using the following formula:</p>
+                            
+                            <div class="bg-gray-100 p-3 rounded-lg mb-3">
+                                <p><b>EMI = [P × r × (1 + r)^n] ÷ [(1 + r)^n - 1]</b></p>
+                                <p>Where:</p>
+                                <ul class="list-disc pl-5">
+                                    <li>P is the Principal loan amount</li>
+                                    <li>r is the monthly interest rate (annual rate divided by 12 and then by 100)</li>
+                                    <li>n is the loan tenure in months</li>
+                                </ul>
+                            </div>
+                            
+                            <p>This calculator helps you understand how your EMI is structured and how much you'll pay over time. You can adjust the loan amount, interest rate, and tenure to see how they affect your monthly payments.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Footer -->
+                <footer class="mt-12 border-t pt-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3">EMI Calculator</h3>
+                            <p class="text-sm text-gray-600">This calculator provides indicative values. Please consult with financial institutions for actual rates and terms.</p>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3">Disclaimer</h3>
+                            <p class="text-sm text-gray-600">The calculations provided by this EMI Calculator are for illustration purposes only. Actual loan offers, interest rates, and terms may vary based on your financial profile, market conditions, and lender policies.</p>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3">Contact</h3>
+                            <ul class="text-sm text-gray-600 space-y-2">
+                                <li><a href="mailto:ayushshahu91@gmail.com" class="hover:text-indigo-600"><i class="fas fa-envelope mr-2"></i>ayushshahu91@gmail.com</a></li>
+                                <li><a href="tel:8007532084" class="hover:text-indigo-600"><i class="fas fa-phone mr-2"></i>+91 8007532084</a></li>
+                                <li>
+                                    <div class="flex space-x-3 mt-2">
+                                        <a href="#" class="text-gray-700 hover:text-indigo-600"><i class="fab fa-facebook-f"></i></a>
+                                        <a href="#" class="text-gray-700 hover:text-indigo-600"><i class="fab fa-twitter"></i></a>
+                                        <a href="#" class="text-gray-700 hover:text-indigo-600"><i class="fab fa-instagram"></i></a>
+                                        <a href="#" class="text-gray-700 hover:text-indigo-600"><i class="fab fa-linkedin-in"></i></a>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center text-sm text-gray-600 mt-8 pb-6">
+                        <p>&copy; 2023 EMI Calculator. All rights reserved.</p>
+                    </div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize variables and elements
+            const emiForm = document.getElementById('emiForm');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const tenureToggle = document.getElementById('tenureToggle');
+            const tenureYearsLabel = document.getElementById('tenureYears');
+            const tenureMonthsLabel = document.getElementById('tenureMonths');
+            const mobileToggleBtn = document.querySelector('.mobile-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            const currencySelect = document.getElementById('currencySelect');
+            const currencySymbol = document.getElementById('currencySymbol');
+            const darkModeToggle = document.getElementById('darkModeCheckbox');
+            const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+            
+            let emiChart = null;
+            let currentCurrency = '₹';
+            
+            // Check for saved dark mode preference
+            if (localStorage.getItem('darkMode') === 'enabled') {
+                document.body.classList.add('dark-mode');
+                darkModeToggle.checked = true;
+            }
+            
+            // Dark mode toggle
+            darkModeToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    document.body.classList.add('dark-mode');
+                    localStorage.setItem('darkMode', 'enabled');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    localStorage.setItem('darkMode', 'disabled');
+                }
+            });
+            
+            // Currency change handler
+            currencySelect.addEventListener('change', function() {
+                currentCurrency = this.value;
+                currencySymbol.textContent = currentCurrency;
+                calculateEMI(); // Recalculate with new currency
+            });
+            
+            // Download PDF button (simulated functionality)
+            downloadPdfBtn.addEventListener('click', function() {
+                alert('Schedule download functionality would be implemented here.');
+                // In a real implementation, this would generate a PDF of the EMI schedule
+            });
+            
+            // Mobile menu toggle
+            if (mobileToggleBtn) {
+                mobileToggleBtn.addEventListener('click', function() {
+                    if (sidebar.classList.contains('hidden')) {
+                        sidebar.classList.remove('hidden');
+                    } else {
+                        sidebar.classList.add('hidden');
+                    }
+                });
+            }
+            
+            // Tenure toggle between years and months
+            tenureToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    tenureYearsLabel.classList.remove('text-indigo-600');
+                    tenureYearsLabel.classList.add('text-gray-500');
+                    tenureMonthsLabel.classList.remove('text-gray-500');
+                    tenureMonthsLabel.classList.add('text-indigo-600');
+                } else {
+                    tenureYearsLabel.classList.add('text-indigo-600');
+                    tenureYearsLabel.classList.remove('text-gray-500');
+                    tenureMonthsLabel.classList.add('text-gray-500');
+                    tenureMonthsLabel.classList.remove('text-indigo-600');
+                }
+            });
+            
+            // Form submission
+            emiForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                showSpinner();
+                
+                // Simulate calculation delay for UX
+                setTimeout(calculateEMI, 800);
+            });
+            
+            // Show loading spinner
+            function showSpinner() {
+                loadingSpinner.style.display = 'block';
+            }
+            
+            // Hide loading spinner
+            function hideSpinner() {
+                loadingSpinner.style.display = 'none';
+            }
+            
+            // Calculate EMI
+            function calculateEMI() {
+                const loanAmount = parseFloat(document.getElementById('loanAmount').value);
+                const interestRate = parseFloat(document.getElementById('interestRate').value);
+                const loanTenure = parseFloat(document.getElementById('loanTenure').value);
+                const isMonths = tenureToggle.checked;
+                
+                // Convert inputs to calculate EMI
+                const principal = loanAmount;
+                const monthlyInterestRate = interestRate / 12 / 100;
+                const tenureInMonths = isMonths ? loanTenure : loanTenure * 12;
+                
+                // Calculate EMI using formula: EMI = [P x R x (1+R)^N]/[(1+R)^N-1]
+                const emi = principal * monthlyInterestRate * Math.pow(1 + monthlyInterestRate, tenureInMonths) / (Math.pow(1 + monthlyInterestRate, tenureInMonths) - 1);
+                
+                const totalPayment = emi * tenureInMonths;
+                const totalInterest = totalPayment - principal;
+                
+                // Update results with current currency symbol
+                document.getElementById('monthlyEmi').textContent = currentCurrency + formatNumber(emi.toFixed(0));
+                document.getElementById('totalInterest').textContent = currentCurrency + formatNumber(totalInterest.toFixed(0));
+                document.getElementById('totalPayment').textContent = currentCurrency + formatNumber(totalPayment.toFixed(0));
+                
+                // Generate payment schedule
+                generatePaymentSchedule(principal, monthlyInterestRate, tenureInMonths, emi);
+                
+                // Update chart
+                updateChart(principal, totalInterest);
+                
+                hideSpinner();
+            }
+            
+            // Format number with commas as thousands separators
+            function formatNumber(number) {
+                return new Intl.NumberFormat('en-IN').format(number);
+            }
+            
+            // Update chart with principal and interest data
+            function updateChart(principal, totalInterest) {
+                const ctx = document.getElementById('emiChart').getContext('2d');
+                
+                if (emiChart) {
+                    emiChart.destroy();
+                }
+                
+                emiChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Principal Amount', 'Total Interest'],
+                        datasets: [{
+                            data: [principal, totalInterest],
+                            backgroundColor: [
+                                '#4F46E5', // Indigo-600
+                                '#A5B4FC'  // Indigo-300
+                            ],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const value = context.raw;
+                                        return context.label + ': ' + currentCurrency + formatNumber(value.toFixed(0));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Generate payment schedule table
+            function generatePaymentSchedule(principal, monthlyInterestRate, tenureInMonths, emi) {
+                const scheduleBody = document.getElementById('paymentScheduleBody');
+                scheduleBody.innerHTML = '';
+                
+                let remainingBalance = principal;
+                let yearlyData = [];
+                let totalPrincipalPaid = 0;
+                let totalInterestPaid = 0;
+                
+                // Calculate monthly data
+                for (let i = 1; i <= tenureInMonths; i++) {
+                    const interestForMonth = remainingBalance * monthlyInterestRate;
+                    const principalForMonth = emi - interestForMonth;
+                    
+                    remainingBalance -= principalForMonth;
+                    totalPrincipalPaid += principalForMonth;
+                    totalInterestPaid += interestForMonth;
+                    
+                    // Group by years for the table
+                    if (i % 12 === 0 || i === tenureInMonths) {
+                        yearlyData.push({
+                            year: Math.ceil(i / 12),
+                            principalPaid: totalPrincipalPaid,
+                            interestPaid: totalInterestPaid,
+                            remainingBalance: remainingBalance > 0 ? remainingBalance : 0
+                        });
+                    }
+                }
+                
+                // Update table with yearly data
+                yearlyData.forEach(data => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Year ${data.year}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${currentCurrency}${formatNumber(data.principalPaid.toFixed(0))}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${currentCurrency}${formatNumber(data.interestPaid.toFixed(0))}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${currentCurrency}${formatNumber(data.remainingBalance.toFixed(0))}</td>
+                    `;
+                    scheduleBody.appendChild(row);
+                });
+            }
+            
+            // Initial calculation on page load
+            calculateEMI();
+        });
+    </script>
+</body>
+</html>
